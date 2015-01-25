@@ -1,5 +1,8 @@
-from os import path
 import os
+import sys
+from os import path
+from datetime import datetime
+
 
 __author__ = 'sandeepd'
 
@@ -10,21 +13,24 @@ def getFilePathFromSSID(SSID):
 
 def getFields(line):
     field = line.split(",")
-    return field[0], field[1], int(field[2]), int(field[3])
+    dt = datetime.strptime("{} {}".format(field[0], field[1]), "%d-%m-%Y %H:%M:%S")
+    return dt, int(field[2]), int(field[3])
 
 
-def totalUsage(filePath):
-    lines = None
+def totalUsage(dateFrom, dateTo, filePath):
     with open(filePath, "r") as f:
         lines = f.read().splitlines()
 
-    date0, time0, tx0, rx0 = getFields(lines[1])
+    lines = map(lambda x: getFields(x), lines[1:])
+    lines = list(filter(lambda x: dateFrom <= x[0] <= dateTo, lines))
+
+    date0, tx0, rx0 = lines[0]
 
     totalTx = tx0
     totalRx = rx0
 
-    for line in lines[2:]:
-        date1, time1, tx1, rx1 = getFields(line)
+    for line in lines[1:]:
+        date1, tx1, rx1 = line
 
         if tx1 == 0 and rx1 == 0:
             continue
@@ -41,4 +47,20 @@ def totalUsage(filePath):
     return totalTx, totalRx
 
 
-print(totalUsage(getFilePathFromSSID("SDN1")))
+def main(args):
+    try:
+        SSID = args[1]
+        dateFrom = datetime.strptime(args[2], "%d-%m-%Y,%H:%M:%S")
+        dateTo = datetime.strptime(args[3], "%d-%m-%Y,%H:%M:%S")
+
+        print("Total transmitted: {} MB\nTotal downloaded:  {} MB"
+              .format(*totalUsage(dateFrom, dateTo, getFilePathFromSSID(SSID))))
+    except IndexError:
+        print("Syntax:-")
+        print("\t{} <SSID> <date-from> <date-to>".format(args[0]))
+        print("Example:-")
+        print("\t{} SDN1 24-01-2015,16:51:38 24-01-2015,17:58:12".format(args[0]))
+
+# print(totalUsage(getFilePathFromSSID("SDN1")))
+if __name__ == "__main__":
+    main(sys.argv)
