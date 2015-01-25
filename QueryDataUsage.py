@@ -22,8 +22,11 @@ def totalUsage(dateFrom, dateTo, filePath):
         lines = f.read().splitlines()
 
     lines = map(lambda x: getFields(x), lines[1:])
-    lines = list(filter(lambda x: dateFrom <= x[0] <= dateTo, lines))
 
+    if dateFrom and dateTo:
+        lines = filter(lambda x: dateFrom <= x[0] <= dateTo, lines)
+
+    lines = list(lines)
     date0, tx0, rx0 = lines[0]
 
     totalTx = tx0
@@ -50,14 +53,17 @@ def totalUsage(dateFrom, dateTo, filePath):
 def main(args):
     try:
         SSID = args[1]
-        dateFrom = datetime.strptime(args[2], "%d-%m-%Y,%H:%M:%S")
-        dateTo = datetime.strptime(args[3], "%d-%m-%Y,%H:%M:%S")
-
+        dateFrom = dateTo = None
+        try:
+            dateFrom = datetime.strptime(args[2], "%d-%m-%Y,%H:%M:%S")
+            dateTo = datetime.strptime(args[3], "%d-%m-%Y,%H:%M:%S")
+        except IndexError:
+            pass
         print("Total transmitted: {} MB\nTotal downloaded:  {} MB"
               .format(*totalUsage(dateFrom, dateTo, getFilePathFromSSID(SSID))))
     except IndexError:
         print("Syntax:-")
-        print("\t{} <SSID> <date-from> <date-to>".format(args[0]))
+        print("\t{} <SSID> [<date-from> <date-to>]".format(args[0]))
         print("Example:-")
         print("\t{} SDN1 24-01-2015,16:51:38 24-01-2015,17:58:12".format(args[0]))
 
