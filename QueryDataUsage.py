@@ -5,7 +5,7 @@ __author__ = 'sandeepd'
 
 
 def getFilePathFromSSID(SSID):
-    return path.join(os.environ['PROGRAMDATA'], "{}.csv".format(SSID))
+    return path.join(os.environ['PROGRAMDATA'], "SDXTECH", "DataUsageLogger", "{}.csv".format(SSID))
 
 
 def getFields(line):
@@ -41,4 +41,4 @@ def totalUsage(filePath):
     return totalTx, totalRx
 
 
-print(totalUsage(r"c:\temp\usage.csv"))
+print(totalUsage(getFilePathFromSSID("SDN1")))
